@@ -2,7 +2,7 @@
 <meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>日本设计岗位 · 累积存档</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
 <style>
 :root{color-scheme:light;--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e8eaf0;--indigo:#5b62d6;--s:#caa204;--a:#2f9e54;--b:#3b78d8;--c:#9aa1af}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","PingFang SC",system-ui,sans-serif;line-height:1.55;font-size:15px}
@@ -16,7 +16,8 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 .sources .lab{color:var(--muted);font-weight:700;margin-right:2px}
 .sources .src{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;color:#3a4255;cursor:pointer;user-select:none}
 .sources .src .c{color:var(--muted);font-weight:700;margin-left:4px}
-.sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}.sources .src.zero{opacity:.5;cursor:default}.sources .src.zero .c{color:#aeb4c0}
+.sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}
+.sources .src.zero{opacity:.5;cursor:default}.sources .src.zero .c{color:#aeb4c0}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
 .chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .chart-card h3{margin:0 0 8px;font-size:13px}.chart-card.wide{grid-column:1 / -1}
@@ -29,7 +30,7 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:12px;cursor:pointer;color:var(--muted);user-select:none}
 .chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(20,25,40,.05)}
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.rowx{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
 .badge{font-size:12px;font-weight:700;color:#fff;border-radius:7px;padding:3px 9px}
 .cat{font-size:11px;border-radius:7px;padding:3px 9px}.new{font-size:11px;font-weight:700;color:#fff;background:#e0568b;border-radius:7px;padding:3px 9px}
 .ti{font-size:15px;font-weight:700;line-height:1.4}.co{color:var(--muted);font-size:13px;margin:1px 0 7px}
@@ -43,7 +44,7 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 </style></head><body><div class="wrap">
 <h1>🗂 日本设计岗位 · 累积存档</h1>
-<div class="sub">2D插画/视觉 · 实体包装与周边(核心) · 全案力 ｜ N2–N1 ｜ 东京/首都圈优先</div>
+<div class="sub">2D插画/视觉 · 实体包装与周边(核心) · 全案力 ｜ N2–N1 ＋ 英语近母语 ｜ 东京/首都圈优先</div>
 <div class="upd" id="upd"></div>
 <section class="kpis" id="kpis"></section>
 <div class="sources" id="sources"></div>
@@ -83,6 +84,17 @@ const esc=s=>String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 let DATA={jobs:[],generated:""};
 let state={q:"",cat:"all",src:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
 let _charts=[];
+const SRCDEFS=[
+{n:'Daijob',kws:['daijob']},{n:'GaijinPot',kws:['gaijinpot','gaijin pot']},{n:'Japan Dev',kws:['japan dev','japandev','japan-dev']},
+{n:'Creative Tokyo',kws:['creative tokyo','creativetokyo']},{n:'Wantedly',kws:['wantedly']},{n:'CareerCross',kws:['careercross','キャリアクロス']},
+{n:'YOLO JAPAN',kws:['yolo']},{n:'NIPPON仕事.com',kws:['nippon','仕事.com']},{n:'デザインのお仕事(JDN)',kws:['jdn','デザインのお仕事','japandesign']},
+{n:'美術手帖JOB',kws:['美術手帖','bijutsu']},{n:'HIGH-FIVE',kws:['high-five','high five','highfive']},{n:'ViViViT',kws:['vivivit']},
+{n:'Indeed',kws:['indeed']},{n:'doda',kws:['doda']},{n:'マイナビ転職',kws:['マイナビ','mynavi']},{n:'リクナビNEXT',kws:['リクナビ','rikunabi']},
+{n:'エン転職',kws:['エン転職','エンゲージ','en転職','en-japan']},{n:'type',kws:['type','タイプ']},{n:'求人ボックス',kws:['求人ボックス','kyujin']},
+{n:'スタンバイ',kws:['スタンバイ','stanby']},{n:'LinkedIn',kws:['linkedin','領英','linked in']}
+];
+function srcMatch(j,def){var s=(j.source||'').toLowerCase();return def.kws.some(function(k){return s.indexOf(k.toLowerCase())>=0;});}
+function srcDefOf(j){for(var i=0;i<SRCDEFS.length;i++){if(srcMatch(j,SRCDEFS[i]))return SRCDEFS[i].n;}return null;}
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;DATA.jobs=DATA.jobs||[];init();})
  .catch(e=>{document.getElementById('list').innerHTML='<p class="empty">加载 data.json 失败：'+esc(e.message||e)+'<br>（请用 https 的 GitHub Pages 网址打开，本地 file:// 会被浏览器拦截）</p>';});
 function kpi(n,l,c){return '<div class="kpi '+(c||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
@@ -92,17 +104,6 @@ function renderKpis(){const J=DATA.jobs;
   kpi(J.length,'累计岗位')+kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
   kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
   kpi(J.filter(j=>j.kanto).length,'首都圈','k')+kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
-const SRCDEFS=[
-{n:'Daijob',kws:['daijob']},{n:'GaijinPot',kws:['gaijinpot','gaijin pot']},{n:'Japan Dev',kws:['japan dev','japandev','japan-dev']},
-{n:'Creative Tokyo',kws:['creative tokyo','creativetokyo']},{n:'Wantedly',kws:['wantedly']},{n:'CareerCross',kws:['careercross','キャリアクロス']},{n:'YOLO JAPAN',kws:['yolo']},
-{n:'NIPPON仕事.com',kws:['nippon','仕事.com']},{n:'デザインのお仕事(JDN)',kws:['jdn','デザインのお仕事','japandesign']},
-{n:'美術手帖JOB',kws:['美術手帖','bijutsu']},{n:'HIGH-FIVE',kws:['high-five','high five','highfive']},{n:'ViViViT',kws:['vivivit']},
-{n:'Indeed',kws:['indeed']},{n:'doda',kws:['doda']},{n:'マイナビ転職',kws:['マイナビ','mynavi']},{n:'リクナビNEXT',kws:['リクナビ','rikunabi']},
-{n:'エン転職',kws:['エン転職','エンゲージ','en転職','en-japan']},{n:'type',kws:['type','タイプ']},{n:'求人ボックス',kws:['求人ボックス','kyujin']},
-{n:'スタンバイ',kws:['スタンバイ','stanby']},{n:'LinkedIn',kws:['linkedin','領英','linked in']}
-];
-function srcMatch(j,def){var s=(j.source||'').toLowerCase();return def.kws.some(function(k){return s.indexOf(k.toLowerCase())>=0;});}
-function srcDefOf(j){for(var i=0;i<SRCDEFS.length;i++){if(srcMatch(j,SRCDEFS[i]))return SRCDEFS[i].n;}return null;}
 function renderSources(){var cnt={};SRCDEFS.forEach(function(d){cnt[d.n]=0;});var extra={};
  DATA.jobs.forEach(function(j){var n=srcDefOf(j);if(n)cnt[n]++;else{var s=j.source||'其他';extra[s]=(extra[s]||0)+1;}});
  var h='<span class="lab">📋 信息来源（每日扫描站点）</span>';
@@ -111,6 +112,16 @@ function renderSources(){var cnt={};SRCDEFS.forEach(function(d){cnt[d.n]=0;});va
  Object.keys(extra).sort(function(a,b){return extra[b]-extra[a];}).forEach(function(s){h+='<span class="src'+(state.src===s?' active':'')+'" data-src="'+esc(s)+'" data-z="0">'+esc(s)+'<span class="c">'+extra[s]+'</span></span>';});
  var el=document.getElementById('sources');el.innerHTML=h;
  el.querySelectorAll('.src').forEach(function(c){c.onclick=function(){if(c.dataset.z==='1')return;state.src=c.dataset.src;state.page=1;renderSources();render();};});}
+function renderCharts(){if(!window.Chart)return;_charts.forEach(c=>c.destroy());_charts=[];
+ const J=DATA.jobs;Chart.defaults.font.size=11;Chart.defaults.font.family='-apple-system,sans-serif';
+ const cats=Object.keys(CL);const cc=cats.map(c=>J.filter(j=>j.category===c).length);
+ _charts.push(new Chart(document.getElementById('catChart'),{type:'bar',data:{labels:cats.map(c=>CL[c][0]),datasets:[{data:cc,backgroundColor:cats.map(c=>CL[c][1]),borderRadius:6,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));
+ const vm={'明确':0,'要確認':0};J.forEach(j=>{vm[j.visa]=(vm[j.visa]||0)+1;});
+ _charts.push(new Chart(document.getElementById('visaChart'),{type:'doughnut',data:{labels:['明确支持','要確認'],datasets:[{data:[vm['明确']||0,vm['要確認']||0],backgroundColor:['#2f9e54','#e0a93a'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}}));
+ const bd={};J.forEach(j=>{const d=j.firstSeen||DATA.generated;bd[d]=(bd[d]||0)+1;});
+ const ds=Object.keys(bd).sort();let cum=0;const cd=ds.map(d=>cum+=bd[d]);
+ _charts.push(new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:ds,datasets:[{label:'累计岗位',data:cd,borderColor:'#5b62d6',backgroundColor:'rgba(91,98,214,.12)',fill:true,tension:.25,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));}
+function drawCharts(){if(!window.Chart){return setTimeout(drawCharts,200);}try{renderCharts();}catch(e){console.error('charts',e);}}
 function filtered(){let a=DATA.jobs.filter(j=>{
   if(state.cat!=='all'&&j.category!==state.cat)return false;
   if(state.src!=='all'){var _d=SRCDEFS.filter(function(d){return d.n===state.src;})[0];if(_d){if(!srcMatch(j,_d))return false;}else if((j.source||'其他')!==state.src)return false;}
@@ -126,7 +137,7 @@ function filtered(){let a=DATA.jobs.filter(j=>{
  return a;}
 function card(j){const C=CL[j.category]||CL["グラフィック・広告"];const vcol=j.visa==='明确'?'#1b8f4a':'#b8860b';
  const isNew=j.firstSeen===DATA.generated;const seen=j.firstSeen===j.lastSeen?j.firstSeen:(j.firstSeen+' → '+j.lastSeen);
- return '<div class="card"><div class="row"><span class="badge" style="background:'+GC[j.grade]+'">'+j.grade+' '+j.score+'</span>'+
+ return '<div class="card"><div class="rowx"><span class="badge" style="background:'+GC[j.grade]+'">'+j.grade+' '+j.score+'</span>'+
   '<span class="cat" style="color:'+C[1]+';background:'+C[2]+'">'+C[0]+'</span>'+(isNew?'<span class="new">今日新增</span>':'')+'</div>'+
   '<div class="ti">'+esc(j.title)+'</div><div class="co">'+esc(j.company)+'</div>'+
   '<div class="meta">📍 '+esc(j.location)+' · 💼 '+esc(j.employ)+' · 💴 '+esc(j.salary)+'</div>'+
@@ -147,5 +158,5 @@ function bind(){
  document.getElementById('sort').onchange=e=>{state.sort=e.target.value;state.page=1;render();};
  document.querySelectorAll('#catFilter .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#catFilter .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.cat=c.dataset.cat;state.page=1;render();});
  document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});}
-function init(){renderKpis();renderSources();renderCharts();bind();render();}
+function init(){renderKpis();renderSources();bind();render();drawCharts();}
 </script></body></html>
