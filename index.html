@@ -11,6 +11,11 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 .kpi{flex:1 1 0;min-width:92px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
 .kpi .n{font-size:21px;font-weight:700}.kpi .l{font-size:10.5px;color:var(--muted);margin-top:1px}
 .kpi.t .n{color:#e0568b}.kpi.s .n{color:var(--s)}.kpi.k .n{color:var(--indigo)}.kpi.v .n{color:#0f9e8f}
+.sources{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 11px;margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px}
+.sources .lab{color:var(--muted);font-weight:700;margin-right:2px}
+.sources .src{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;color:#3a4255;cursor:pointer;user-select:none}
+.sources .src .c{color:var(--muted);font-weight:700;margin-left:4px}
+.sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 10px}
 .toolbar input,.toolbar select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
 .toolbar input{flex:1;min-width:150px}
@@ -35,6 +40,7 @@ footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 <div class="sub">2D插画/视觉 · 实体包装与周边(核心) · 全案力 ｜ N2–N1 ｜ 东京/首都圈优先</div>
 <div class="upd" id="upd"></div>
 <section class="kpis" id="kpis"></section>
+<div class="sources" id="sources"></div>
 <div class="toolbar">
  <input id="q" placeholder="🔍 搜索 职位 / 公司 / 地点…">
  <select id="sort"><option value="firstSeen">按收录时间（新→旧）</option><option value="score">按匹配度（高→低）</option><option value="lastSeen">按最近出现</option></select>
@@ -57,14 +63,14 @@ footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 </div>
 <div id="list"></div>
 <div class="pager" id="pager"></div>
-<footer>累积存档：每日 08:28 自动合并去重（按 公司+职位）。firstSeen=首次收录日，lastSeen=最近一次出现在每日匹配里。匹配度按6维模型（职能35/实体20/全案15/签证15/地点10/语言5）。「要確認」=未注明或公开渠道未查到。© 自动生成，仅供求职参考。</footer>
+<footer>累积存档：每日 08:28 自动合并去重（按 公司+职位）。firstSeen=首次收录日，lastSeen=最近一次出现在每日匹配里。匹配度按6维模型（职能35/实体20/全案15/签证15/地点10/语言5）。「要確認」=未注明或公开渠道未查到。来源以各招聘页为准。© 自动生成，仅供求职参考。</footer>
 </div>
 <script>
 const CL={"パッケージ":["包装","#0c7a6e","#e3f6f3"],"グッズ・商品企画":["周边/商品企划","#bd3f72","#fceaf2"],"グラフィック・広告":["平面/广告","#444cc0","#eceefb"],"イラスト・ビジュアル":["插画/视觉","#9a6406","#fdf2dc"],"プロダクト":["产品/立体","#26834a","#e7f5ec"]};
 const GC={S:"#caa204",A:"#2f9e54",B:"#3b78d8",C:"#9aa1af"};
 const esc=s=>String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 let DATA={jobs:[],generated:""};
-let state={q:"",cat:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
+let state={q:"",cat:"all",src:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;DATA.jobs=DATA.jobs||[];init();})
  .catch(e=>{document.getElementById('list').innerHTML='<p class="empty">加载 data.json 失败：'+esc(e.message||e)+'<br>（请用 https 的 GitHub Pages 网址打开，本地 file:// 会被浏览器拦截）</p>';});
 function kpi(n,l,c){return '<div class="kpi '+(c||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
@@ -76,8 +82,16 @@ function renderKpis(){const J=DATA.jobs;
   kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
   kpi(J.filter(j=>j.kanto).length,'首都圈','k')+
   kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
+function renderSources(){const m={};DATA.jobs.forEach(j=>{const s=j.source||'其他';m[s]=(m[s]||0)+1;});
+ const arr=Object.keys(m).sort((a,b)=>m[b]-m[a]);
+ let h='<span class="lab">📋 信息来源</span>';
+ h+='<span class="src'+(state.src==='all'?' active':'')+'" data-src="all">全部<span class="c">'+DATA.jobs.length+'</span></span>';
+ arr.forEach(s=>{h+='<span class="src'+(state.src===s?' active':'')+'" data-src="'+esc(s)+'">'+esc(s)+'<span class="c">'+m[s]+'</span></span>';});
+ const el=document.getElementById('sources');el.innerHTML=h;
+ el.querySelectorAll('.src').forEach(c=>c.onclick=()=>{state.src=c.dataset.src;state.page=1;renderSources();render();});}
 function filtered(){let a=DATA.jobs.filter(j=>{
   if(state.cat!=='all'&&j.category!==state.cat)return false;
+  if(state.src!=='all'&&(j.source||'其他')!==state.src)return false;
   if(state.flt.has('today')&&j.firstSeen!==DATA.generated)return false;
   if(state.flt.has('kanto')&&!j.kanto)return false;
   if(state.flt.has('visa')&&j.visa!=='明确')return false;
@@ -95,9 +109,9 @@ function card(j){const C=CL[j.category]||CL["グラフィック・広告"];const
   '<div class="ti">'+esc(j.title)+'</div><div class="co">'+esc(j.company)+'</div>'+
   '<div class="meta">📍 '+esc(j.location)+' · 💼 '+esc(j.employ)+' · 💴 '+esc(j.salary)+'</div>'+
   '<div class="meta">🛂 <b style="color:'+vcol+'">'+esc(j.visa)+'</b> '+esc(j.visaNote||'')+' ｜ 革新 '+esc(j.innov)+'</div>'+
-  '<div class="meta sub">🗓 '+esc(seen)+'（出现 '+(j.seenCount||1)+' 天）</div>'+
+  '<div class="meta sub">🗓 '+esc(seen)+'（出现 '+(j.seenCount||1)+' 天）· 来源 '+esc(j.source||'')+'</div>'+
   '<div class="note">'+esc(j.note||'')+'</div>'+
-  '<a class="open" href="'+esc(j.url)+'" target="_blank" rel="noopener">查看招聘页 ↗（'+esc(j.source||'')+'）</a></div>';}
+  '<a class="open" href="'+esc(j.url)+'" target="_blank" rel="noopener">查看招聘页 ↗</a></div>';}
 function pager(total){const pages=Math.max(1,Math.ceil(total/state.size));if(state.page>pages)state.page=pages;
  return '<button '+(state.page<=1?'disabled':'')+' onclick="go('+(state.page-1)+')">‹ 上一页</button>'+
   '<span>第 '+state.page+' / '+pages+' 页 · 共 '+total+' 条</span>'+
@@ -111,5 +125,5 @@ function bind(){
  document.getElementById('sort').onchange=e=>{state.sort=e.target.value;state.page=1;render();};
  document.querySelectorAll('#catFilter .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#catFilter .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.cat=c.dataset.cat;state.page=1;render();});
  document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});}
-function init(){renderKpis();bind();render();}
+function init(){renderKpis();renderSources();bind();render();}
 </script></body></html>
