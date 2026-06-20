@@ -16,7 +16,7 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 .sources .lab{color:var(--muted);font-weight:700;margin-right:2px}
 .sources .src{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;color:#3a4255;cursor:pointer;user-select:none}
 .sources .src .c{color:var(--muted);font-weight:700;margin-left:4px}
-.sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}
+.sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}.sources .src.zero{opacity:.5;cursor:default}.sources .src.zero .c{color:#aeb4c0}
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
 .chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
 .chart-card h3{margin:0 0 8px;font-size:13px}.chart-card.wide{grid-column:1 / -1}
@@ -92,24 +92,28 @@ function renderKpis(){const J=DATA.jobs;
   kpi(J.length,'累计岗位')+kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
   kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
   kpi(J.filter(j=>j.kanto).length,'首都圈','k')+kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
-function renderSources(){const m={};DATA.jobs.forEach(j=>{const s=j.source||'其他';m[s]=(m[s]||0)+1;});
- const arr=Object.keys(m).sort((a,b)=>m[b]-m[a]);
- let h='<span class="lab">📋 信息来源</span><span class="src'+(state.src==='all'?' active':'')+'" data-src="all">全部<span class="c">'+DATA.jobs.length+'</span></span>';
- arr.forEach(s=>{h+='<span class="src'+(state.src===s?' active':'')+'" data-src="'+esc(s)+'">'+esc(s)+'<span class="c">'+m[s]+'</span></span>';});
- const el=document.getElementById('sources');el.innerHTML=h;
- el.querySelectorAll('.src').forEach(c=>c.onclick=()=>{state.src=c.dataset.src;state.page=1;renderSources();render();});}
-function renderCharts(){if(!window.Chart)return;_charts.forEach(c=>c.destroy());_charts=[];
- const J=DATA.jobs;Chart.defaults.font.size=11;Chart.defaults.font.family='-apple-system,sans-serif';
- const cats=Object.keys(CL);const cc=cats.map(c=>J.filter(j=>j.category===c).length);
- _charts.push(new Chart(document.getElementById('catChart'),{type:'bar',data:{labels:cats.map(c=>CL[c][0]),datasets:[{data:cc,backgroundColor:cats.map(c=>CL[c][1]),borderRadius:6,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));
- const vm={'明确':0,'要確認':0};J.forEach(j=>{vm[j.visa]=(vm[j.visa]||0)+1;});
- _charts.push(new Chart(document.getElementById('visaChart'),{type:'doughnut',data:{labels:['明确支持','要確認'],datasets:[{data:[vm['明确']||0,vm['要確認']||0],backgroundColor:['#2f9e54','#e0a93a'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}}));
- const bd={};J.forEach(j=>{const d=j.firstSeen||DATA.generated;bd[d]=(bd[d]||0)+1;});
- const ds=Object.keys(bd).sort();let cum=0;const cd=ds.map(d=>cum+=bd[d]);
- _charts.push(new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:ds,datasets:[{label:'累计岗位',data:cd,borderColor:'#5b62d6',backgroundColor:'rgba(91,98,214,.12)',fill:true,tension:.25,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));}
+const SRCDEFS=[
+{n:'Daijob',kws:['daijob']},{n:'GaijinPot',kws:['gaijinpot','gaijin pot']},{n:'Japan Dev',kws:['japan dev','japandev','japan-dev']},
+{n:'Creative Tokyo',kws:['creative tokyo','creativetokyo']},{n:'Wantedly',kws:['wantedly']},{n:'YOLO JAPAN',kws:['yolo']},
+{n:'NIPPON仕事.com',kws:['nippon','仕事.com']},{n:'デザインのお仕事(JDN)',kws:['jdn','デザインのお仕事','japandesign']},
+{n:'美術手帖JOB',kws:['美術手帖','bijutsu']},{n:'HIGH-FIVE',kws:['high-five','high five','highfive']},{n:'ViViViT',kws:['vivivit']},
+{n:'Indeed',kws:['indeed']},{n:'doda',kws:['doda']},{n:'マイナビ転職',kws:['マイナビ','mynavi']},{n:'リクナビNEXT',kws:['リクナビ','rikunabi']},
+{n:'エン転職',kws:['エン転職','エンゲージ','en転職','en-japan']},{n:'type',kws:['type','タイプ']},{n:'求人ボックス',kws:['求人ボックス','kyujin']},
+{n:'スタンバイ',kws:['スタンバイ','stanby']},{n:'LinkedIn',kws:['linkedin','領英','linked in']}
+];
+function srcMatch(j,def){var s=(j.source||'').toLowerCase();return def.kws.some(function(k){return s.indexOf(k.toLowerCase())>=0;});}
+function srcDefOf(j){for(var i=0;i<SRCDEFS.length;i++){if(srcMatch(j,SRCDEFS[i]))return SRCDEFS[i].n;}return null;}
+function renderSources(){var cnt={};SRCDEFS.forEach(function(d){cnt[d.n]=0;});var extra={};
+ DATA.jobs.forEach(function(j){var n=srcDefOf(j);if(n)cnt[n]++;else{var s=j.source||'其他';extra[s]=(extra[s]||0)+1;}});
+ var h='<span class="lab">📋 信息来源（每日扫描站点）</span>';
+ h+='<span class="src'+(state.src==='all'?' active':'')+'" data-src="all" data-z="0">全部<span class="c">'+DATA.jobs.length+'</span></span>';
+ SRCDEFS.forEach(function(d){var z=cnt[d.n]===0;var ttl=z?' title="已纳入每日扫描，目前暂无匹配岗位"':'';h+='<span class="src'+(z?' zero':'')+(state.src===d.n?' active':'')+'" data-src="'+esc(d.n)+'" data-z="'+(z?1:0)+'"'+ttl+'>'+esc(d.n)+'<span class="c">'+cnt[d.n]+'</span></span>';});
+ Object.keys(extra).sort(function(a,b){return extra[b]-extra[a];}).forEach(function(s){h+='<span class="src'+(state.src===s?' active':'')+'" data-src="'+esc(s)+'" data-z="0">'+esc(s)+'<span class="c">'+extra[s]+'</span></span>';});
+ var el=document.getElementById('sources');el.innerHTML=h;
+ el.querySelectorAll('.src').forEach(function(c){c.onclick=function(){if(c.dataset.z==='1')return;state.src=c.dataset.src;state.page=1;renderSources();render();};});}
 function filtered(){let a=DATA.jobs.filter(j=>{
   if(state.cat!=='all'&&j.category!==state.cat)return false;
-  if(state.src!=='all'&&(j.source||'其他')!==state.src)return false;
+  if(state.src!=='all'){var _d=SRCDEFS.filter(function(d){return d.n===state.src;})[0];if(_d){if(!srcMatch(j,_d))return false;}else if((j.source||'其他')!==state.src)return false;}
   if(state.flt.has('today')&&j.firstSeen!==DATA.generated)return false;
   if(state.flt.has('kanto')&&!j.kanto)return false;
   if(state.flt.has('visa')&&j.visa!=='明确')return false;
