@@ -1,106 +1,115 @@
-<!doctype html>
-<script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Japan Design Job Matches",
-  "schemaVersion": 1,
-  "description": "日本设计岗位每日匹配仪表盘。为「2D插画/视觉 + 实体包装与周边(核心) + 全案力、商务日语N2-N1、东京/首都圈优先、已在日本需工签转换」的求职者，每天08:00 JST扫描日本求人站，按6维模型(职能35/实体20/全案15/签证15/地点10/语言5)打分。2026-06-20共10个在招岗位(S1/A8/B1)，均为东京/首都圈，1个明确签证支持(ZigZaGame)。",
-  "mcpTools": [],
-  "mcpServerNames": []
-}
-</script>
-<html lang="zh"><head>
-<meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>日本设计岗位匹配 · 每日仪表盘</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<!doctype html><html lang="zh"><head>
+<meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>日本设计岗位 · 累积存档</title>
 <style>
-:root{color-scheme:light;--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e8eaf0;--teal:#0f9e8f;--pink:#e0568b;--indigo:#5b62d6;--amber:#e0930a;--green:#2f9e54;--s:#caa204;--a:#2f9e54;--b:#3b78d8;--c:#9aa1af;--shadow:0 1px 2px rgba(20,25,40,.06),0 8px 24px rgba(20,25,40,.06)}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Sans","Yu Gothic UI","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;font-size:14px}
-.wrap{max-width:1180px;margin:0 auto;padding:22px 18px 56px}
-header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:8px}
-h1{font-size:21px;margin:0}.sub{color:var(--muted);font-size:12.5px;margin-top:3px}
-.upd{font-size:12px;color:var(--muted);text-align:right;line-height:1.7}.upd b{color:var(--ink)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
-.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
-.kpi .n{font-size:26px;font-weight:700}.kpi .l{font-size:12px;color:var(--muted);margin-top:2px}
-.kpi.s .n{color:var(--s)}.kpi.a .n{color:var(--a)}.kpi.k .n{color:var(--indigo)}.kpi.v .n{color:var(--teal)}
-.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;margin:6px 0 16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:var(--shadow)}
-.card h3{margin:0 0 10px;font-size:14px}.chart-box{position:relative;height:230px}
-.note{background:#fff8ed;border:1px solid #f3e2c0;border-radius:12px;padding:12px 14px;font-size:12.5px;color:#7a5a16;margin:2px 0 16px}.note b{color:#5f4410}
-.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
-.toolbar input,.toolbar select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}.toolbar input{flex:1;min-width:150px}
-.seg{display:flex;gap:6px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:12px;cursor:pointer;color:var(--muted);user-select:none}.chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead th{text-align:left;font-size:11.5px;color:var(--muted);font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;position:sticky;top:0;background:var(--card)}
-thead th .ar{opacity:.4;font-size:10px}tbody td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}tbody tr:hover{background:#fafbfe}
-.score{display:flex;align-items:center;gap:8px}.badge{font-size:11px;font-weight:700;color:#fff;border-radius:6px;padding:2px 7px;min-width:20px;text-align:center}
-.badge.S{background:var(--s)}.badge.A{background:var(--a)}.badge.B{background:var(--b)}.badge.C{background:var(--c)}
-.scoreN{font-weight:700;font-variant-numeric:tabular-nums}.bar{height:5px;width:64px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:4px}.bar>i{display:block;height:100%;border-radius:4px}
-.title-cell b{font-size:13.5px}.title-cell .co{color:var(--muted);font-size:12px;margin-top:1px}
-.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:6px;white-space:nowrap}
-.tag.pkg{background:#e3f6f3;color:#0c7a6e}.tag.goods{background:#fceaf2;color:#bd3f72}.tag.graphic{background:#eceefb;color:#444cc0}.tag.illust{background:#fdf2dc;color:#9a6406}.tag.product{background:#e7f5ec;color:#26834a}
-.visa{font-weight:600;font-size:12px}.visa .v1{color:#1b8f4a}.visa .v2{color:#b8860b}.visa .v3{color:#8a93a3}
-.innovline{margin-top:5px;font-size:11px;color:var(--muted)}.itag{display:inline-block;font-weight:700;border-radius:5px;padding:1px 6px;font-size:10.5px}.itag.i1{background:#e3f6f3;color:#0c7a6e}.itag.i2{background:#fdf2dc;color:#9a6406}.itag.i0{background:#eef0f2;color:#8a93a3}
-.loc-kanto{color:var(--indigo);font-weight:600}.loc-other{color:var(--muted)}
-a.apply{display:inline-block;font-size:12px;color:#fff;background:var(--indigo);padding:6px 11px;border-radius:8px;text-decoration:none;white-space:nowrap}a.apply:hover{background:#454cc6}
-.src{font-size:11.5px;color:var(--muted)}.bd{margin-top:6px;font-size:11px;color:var(--muted);display:none}tr.open .bd{display:block}.expand{cursor:pointer;color:var(--indigo);font-size:11px;user-select:none}
-.model{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:6px}.model .m{background:#fafbfe;border:1px solid var(--line);border-radius:10px;padding:9px 10px}.model .m .w{font-size:18px;font-weight:700}.model .m .t{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.35}
-.prof{font-size:12.5px;color:#3a4255}.prof li{margin:3px 0}
-footer{margin-top:22px;color:var(--muted);font-size:11.5px;line-height:1.7}footer a{color:var(--indigo);text-decoration:none}h2.sec{font-size:15px;margin:22px 0 8px}
-@media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.model{grid-template-columns:repeat(3,1fr)}.col-hide{display:none}}
+:root{color-scheme:light;--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e8eaf0;--indigo:#5b62d6;--s:#caa204;--a:#2f9e54;--b:#3b78d8;--c:#9aa1af}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","PingFang SC",system-ui,sans-serif;line-height:1.55;font-size:15px}
+.wrap{max-width:860px;margin:0 auto;padding:16px 14px 48px}
+h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{color:var(--muted);font-size:12px;margin-top:4px}
+.kpis{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 10px}
+.kpi{flex:1 1 0;min-width:92px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 8px;text-align:center}
+.kpi .n{font-size:21px;font-weight:700}.kpi .l{font-size:10.5px;color:var(--muted);margin-top:1px}
+.kpi.t .n{color:#e0568b}.kpi.s .n{color:var(--s)}.kpi.k .n{color:var(--indigo)}.kpi.v .n{color:#0f9e8f}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 10px}
+.toolbar input,.toolbar select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+.toolbar input{flex:1;min-width:150px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 11px;font-size:12px;cursor:pointer;color:var(--muted);user-select:none}
+.chip.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px;box-shadow:0 1px 2px rgba(20,25,40,.05)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:7px}
+.badge{font-size:12px;font-weight:700;color:#fff;border-radius:7px;padding:3px 9px}
+.cat{font-size:11px;border-radius:7px;padding:3px 9px}.new{font-size:11px;font-weight:700;color:#fff;background:#e0568b;border-radius:7px;padding:3px 9px}
+.ti{font-size:15px;font-weight:700;line-height:1.4}.co{color:var(--muted);font-size:13px;margin:1px 0 7px}
+.meta{font-size:12.5px;color:#3a4255;margin:2px 0}.meta.sub{color:var(--muted);font-size:11.5px}
+.note{font-size:12.5px;color:#5f4410;background:#fff8ed;border:1px solid #f3e2c0;border-radius:9px;padding:8px 10px;margin:8px 0 0}
+.open{display:inline-block;margin-top:10px;background:var(--indigo);color:#fff;text-decoration:none;text-align:center;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:600}
+.pager{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px 0}
+.pager button{font:inherit;padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer}
+.pager button:disabled{opacity:.4;cursor:default}.pager span{font-size:12.5px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:30px}
+footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 </style></head><body><div class="wrap">
-<header class="top"><div><h1>🎨 日本设计岗位匹配 · 每日仪表盘</h1>
-<div class="sub">求职者画像：2D插画/视觉 · 实体包装与周边（核心）· 独立项目全案力 ｜ 商务日语 N2–N1 ｜ 东京/首都圈优先 ｜ 已在日本（需工签转换/续签）</div></div>
-<div class="upd"><div><span class="dot"></span><b>最終更新</b>：<span id="updated"></span></div><div>次回自動更新：<b>每天 08:00（JST）</b></div></div></header>
-<section class="kpis"><div class="kpi"><div class="n" id="k-total">–</div><div class="l">今日匹配岗位</div></div><div class="kpi s"><div class="n" id="k-sa">–</div><div class="l">S / A 级高匹配</div></div><div class="kpi k"><div class="n" id="k-kanto">–</div><div class="l">东京 / 首都圈</div></div><div class="kpi v"><div class="n" id="k-visa">–</div><div class="l">明确签证支持</div></div></section>
-<div class="note"><b>关于签证（请务必阅读）：</b>标「<span style="color:#1b8f4a;font-weight:700">明确</span>」= 招聘页直接写明「海外応募可 / 外国籍歓迎 / ビザサポート」；标「<span style="color:#b8860b;font-weight:700">要確認</span>」= 日企国内招聘、未注明国籍要求。设计工作通常符合「技術・人文知識・国際業務」在留资格，对已在日本的你而言，多数<b>正社员</b> offer 一般可支持<b>在留资格变更/更新</b>，但<b>需逐家与企业确认</b>。</div>
-<div class="note" style="background:#eef4fb;border-color:#cfe0f3;color:#274a6e"><b>关于「革新促进资格」（イノベーション促進支援措置 / 経営革新計画）：</b>若招聘公司持有都道府县承认的<b>経営革新計画</b>，或被认定为 <b>J-Startup</b> 等创新企业，其雇佣的外国人在留资格审查时通常被视为<b>「カテゴリー1」</b>——提交材料更少、审查更快，并可获<b>高度人材积分 +10〜20</b>（中小企业额外加分），对在留资格变更/更新更有利。本列标「<span style="color:#0c7a6e;font-weight:700">対象</span>」=已查到承认/认定记录；标「<span style="color:#9a6406;font-weight:700">要確認</span>」=公开信息未查到、需向企业或都道府县产业劳动局核实。核查入口：各都道府县产业劳动局「経営革新計画承認企業」名单、J-Startup 官网。</div>
-<div class="grid2"><div class="card"><h3>匹配岗位 · 职能分布</h3><div class="chart-box"><canvas id="catChart"></canvas></div></div><div class="card"><h3>签证支持状况</h3><div class="chart-box"><canvas id="visaChart"></canvas></div></div></div>
-<div class="card"><h2 class="sec" style="margin-top:0">📋 匹配岗位明细</h2>
-<div class="toolbar"><input id="q" placeholder="🔍 搜索职位 / 公司…">
-<div class="seg" id="catFilter"><span class="chip active" data-cat="all">全部职能</span><span class="chip" data-cat="パッケージ">包装</span><span class="chip" data-cat="グッズ・商品企画">周边/商品企划</span><span class="chip" data-cat="グラフィック・広告">平面/广告</span><span class="chip" data-cat="イラスト・ビジュアル">插画/视觉</span><span class="chip" data-cat="プロダクト">产品/立体</span></div>
-<div class="seg" id="extra"><span class="chip" data-flt="kanto">仅首都圈</span><span class="chip" data-flt="visa">仅明确签证</span><span class="chip" data-flt="innov">仅革新促进资格</span></div></div>
-<div style="overflow-x:auto"><table id="tbl"><thead><tr><th data-k="score">匹配度 <span class="ar">▼</span></th><th data-k="title">职位 / 公司</th><th data-k="category" class="col-hide">职能</th><th data-k="location">地点</th><th data-k="salary" class="col-hide">雇用 / 薪资</th><th data-k="visa">签证</th><th data-k="source" class="col-hide">来源</th><th>操作</th></tr></thead><tbody id="rows"></tbody></table></div></div>
-<div class="card" style="margin-top:14px"><h2 class="sec" style="margin-top:0">⚙️ 匹配评分模型（满分 100）</h2>
-<div class="prof" style="margin-bottom:8px">依据求职者四大核心竞争力 + 硬性条件加权打分。等级：<b style="color:var(--s)">S ≥85</b> ｜ <b style="color:var(--a)">A 70–84</b> ｜ <b style="color:var(--b)">B 55–69</b> ｜ <b style="color:var(--c)">C &lt;55</b>。</div>
-<div class="model"><div class="m"><div class="w">35</div><div class="t">职能匹配<br>包装/周边/商品企划/平面/插画</div></div><div class="m"><div class="w">20</div><div class="t">实体落地<br>立体结构·打样印刷·材质工艺</div></div><div class="m"><div class="w">15</div><div class="t">全案/商业<br>企划→量产→物流→展会→热卖</div></div><div class="m"><div class="w">15</div><div class="t">签证/外国人<br>明确支持＞可support＞要確認</div></div><div class="m"><div class="w">10</div><div class="t">地点<br>东京/首都圈＞神奈川周边＞地方</div></div><div class="m"><div class="w">5</div><div class="t">语言/雇用<br>商务日语·正社员/契约匹配</div></div></div></div>
-<h2 class="sec">🔎 数据来源（每日 08:00 JST 扫描）</h2>
-<div class="card prof"><b>外国人/多语种（签证支持明确）：</b> Daijob · GaijinPot · Japan Dev · Creative Tokyo · Wantedly（外国籍歓迎）· YOLO JAPAN · NIPPON仕事.com<br><b>设计专门站：</b> デザインのお仕事(JDN) · 美術手帖 JOB · HIGH-FIVE · ViViViT<br><b>综合大手：</b> Indeed Japan · doda · マイナビ転職 · リクナビNEXT · エン転職 · type · 求人ボックス · スタンバイ<br><b>革新促进资格核查：</b> 各都道府县产业劳动局「経営革新計画承認企業」名单 · J-Startup 官网<br><span class="src">检索关键词：パッケージデザイナー / グッズデザイナー / 商品企画 / グラフィックデザイナー / イラストレーター兼デザイナー ＋ 東京・首都圏 ＋ 外国籍歓迎・ビザサポート</span></div>
-<footer>种子数据来自实地检索，均为可溯源在招岗位；薪资/签证/革新促进资格以各招聘页及官方名单为准，「要確認」表示未注明或公开渠道未查到、需向企业确认。本仪表盘由每日 08:00（JST）定时任务自动刷新。<br>© 自动生成 · 仅供求职参考，非中介/担保信息。</footer></div>
+<h1>🗂 日本设计岗位 · 累积存档</h1>
+<div class="sub">2D插画/视觉 · 实体包装与周边(核心) · 全案力 ｜ N2–N1 ｜ 东京/首都圈优先</div>
+<div class="upd" id="upd"></div>
+<section class="kpis" id="kpis"></section>
+<div class="toolbar">
+ <input id="q" placeholder="🔍 搜索 职位 / 公司 / 地点…">
+ <select id="sort"><option value="firstSeen">按收录时间（新→旧）</option><option value="score">按匹配度（高→低）</option><option value="lastSeen">按最近出现</option></select>
+</div>
+<div class="toolbar">
+ <div class="seg" id="catFilter">
+  <span class="chip active" data-cat="all">全部职能</span>
+  <span class="chip" data-cat="パッケージ">包装</span>
+  <span class="chip" data-cat="グッズ・商品企画">周边/商品企划</span>
+  <span class="chip" data-cat="グラフィック・広告">平面/广告</span>
+  <span class="chip" data-cat="イラスト・ビジュアル">插画/视觉</span>
+  <span class="chip" data-cat="プロダクト">产品/立体</span>
+ </div>
+ <div class="seg" id="extra">
+  <span class="chip" data-flt="today">仅今日新增</span>
+  <span class="chip" data-flt="kanto">仅首都圈</span>
+  <span class="chip" data-flt="visa">仅明确签证</span>
+  <span class="chip" data-flt="innov">仅革新促进</span>
+ </div>
+</div>
+<div id="list"></div>
+<div class="pager" id="pager"></div>
+<footer>累积存档：每日 08:28 自动合并去重（按 公司+职位）。firstSeen=首次收录日，lastSeen=最近一次出现在每日匹配里。匹配度按6维模型（职能35/实体20/全案15/签证15/地点10/语言5）。「要確認」=未注明或公开渠道未查到。© 自动生成，仅供求职参考。</footer>
+</div>
 <script>
-/* === META_START === */
-const META = { updated: "2026-06-20（土）08:00 JST", generated: "2026-06-20" };
-/* === META_END === */
-/* === JOBS_DATA_START === */
-const JOBS = [
-{ score:86, grade:"S", title:"イラストレーター兼デザイナー／グラフィックデザイナー", company:"株式会社楽日 LUCK'A Inc.", category:"グッズ・商品企画", location:"東京都渋谷区千駄ヶ谷", kanto:true, employ:"正社員・契約社員", salary:"当社規定（経験により）", visa:"要確認", visaNote:"日企正社员/契约，未注明国籍", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1850", bd:{role:33,phys:17,full:14,visa:7,loc:10,lang:5}, note:"全场最贴合：插画×设计×周边商品企画×自社製造×展会空间一贯，含残糸upcycle毛巾等立体产品延展。⚠掲載終了6/26临近，尽快投。" },
-{ score:84, grade:"A", title:"パッケージデザイナー・グラフィックデザイナー", company:"共同印刷株式会社", category:"パッケージ", location:"東京都文京区小石川", kanto:true, employ:"正社員・契約社員", salary:"年収約400〜600万円", visa:"要確認", visaNote:"大手日企，可support但未注明，建议先问", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1874", bd:{role:32,phys:18,full:11,visa:8,loc:10,lang:5}, note:"大手印刷上市企业，商品包装设计+实拍指挥+印刷打样一条龙，有3D软件加分；实体落地最强档之一。大公司多属在留カテゴリー1。" },
-{ score:84, grade:"A", title:"パッケージ（商品）デザイナー", company:"花王株式会社 作成センター", category:"パッケージ", location:"東京都中央区日本橋茅場町", kanto:true, employ:"正社員", salary:"月収約30〜48万円／年収約430〜690万円", visa:"要確認", visaNote:"大手上市企业，要求英语·全球视野，相对友好但未注明", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1875", bd:{role:32,phys:17,full:12,visa:8,loc:10,lang:5}, note:"花王 in-house：从品牌策略→商品概念→包装→平面全程，待遇行业顶档；招聘明写「英语·全球视野尚可」，对外国人较友好。上市大企多属カテゴリー1。" },
-{ score:83, grade:"A", title:"デザイナー（グッズ企画・制作）", company:"株式会社ラクシス", category:"グッズ・商品企画", location:"東京都渋谷区鶯谷町", kanto:true, employ:"正社員", salary:"月給28万円〜＋賞与年2回", visa:"要確認", visaNote:"日企正社员，未注明国籍", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1846", bd:{role:31,phys:17,full:13,visa:7,loc:10,lang:5}, note:"J/K-POP·影视·动漫·体育周边，从企划到制作一贯、可参与商品企划立案；数据构建/入稿/品质管理=实体打样全链路。" },
-{ score:83, grade:"A", title:"グラフィックデザイナー・パッケージデザイナー", company:"東京アート株式会社", category:"パッケージ", location:"東京都中央区新川", kanto:true, employ:"正社員", salary:"月給23.3万円〜", visa:"要確認", visaNote:"日企正社员，未注明国籍", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1868", bd:{role:31,phys:18,full:12,visa:7,loc:10,lang:5}, note:"SP包装·阿pa雷尔礼盒/纸袋/丝带/贴纸等立体包装资材top share，重材质·结构·打样，与你「立体结构+材质工艺」核心高度重合。" },
-{ score:79, grade:"A", title:"商品デザイナー／DTPデザイナー", company:"株式会社マリモクラフト", category:"グッズ・商品企画", location:"東京都江東区木場", kanto:true, employ:"契約社員（正社員登用あり）", salary:"月給23.5万円〜", visa:"要確認", visaNote:"契约社员，未注明国籍", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1895", bd:{role:30,phys:16,full:12,visa:6,loc:10,lang:5}, note:"1967年创业的角色杂货老牌，含包装+副资材+量产指示书+POP UP装饰，企划到量产到EC一条龙；契约起步可转正。" },
-{ score:77, grade:"A", title:"キャラクターグッズ商品デザイナー", company:"株式会社Key-th", category:"グッズ・商品企画", location:"神奈川県横浜市青葉区（あざみ野）", kanto:true, employ:"正社員", salary:"月給20〜25万円", visa:"要確認", visaNote:"中小日企(24名)，未注明国籍", innov:"要確認", source:"デザインのお仕事(JDN)", url:"https://jobs.japandesign.ne.jp/recruit/1897", bd:{role:31,phys:15,full:11,visa:7,loc:8,lang:5}, note:"动漫/游戏/VTuber角色周边商品设计+印刷数据+Comike/POP UP展示物；推し活向、氛围自由。地点横滨(首都圈)、薪资偏入门。" },
-{ score:75, grade:"A", title:"グラフィックデザイナー", company:"株式会社OTOIRO", category:"グラフィック・広告", location:"東京都渋谷区", kanto:true, employ:"正社員", salary:"月給27.4万円〜（固残45h含）", visa:"要確認", visaNote:"日企正社员，未注明国籍", innov:"要確認", source:"美術手帖JOB", url:"https://job.bijutsutecho.com/job/24686", bd:{role:29,phys:14,full:10,visa:7,loc:10,lang:5}, note:"DECO*27创立的创意团队，广告/平面/包装/MV/Web横跨，可捏粘土做立体表现；偏视觉综合、量产/物流维度略弱。" },
-{ score:72, grade:"A", title:"グラフィックデザイナー（エンタメグッズ＆バナー）", company:"フォッグ株式会社（Fogg）", category:"グッズ・商品企画", location:"東京都渋谷区", kanto:true, employ:"フリーランス（正社員相談可）", salary:"応相談", visa:"要確認", visaNote:"フリーランス招募为主，签证支持受限；正社员可商谈再确认", innov:"要確認", source:"Wantedly", url:"https://www.wantedly.com/projects/2051512", bd:{role:30,phys:13,full:11,visa:5,loc:10,lang:3}, note:"在线一番赏「Raffle」运营、Series A融资中、目标做「次世代物販平台」，商品企画组对口；但岗位为业务委托，工签需谈正社员后再核。" },
-{ score:62, grade:"B", title:"Graphic Designer", company:"ZigZaGame Inc.", category:"グラフィック・広告", location:"東京都品川区", kanto:true, employ:"正社員", salary:"¥3.5M〜¥10M／年", visa:"明确", visaNote:"招聘页明写 visa sponsorship；英语可、需在住日本", innov:"要確認", source:"GaijinPot", url:"https://jobs.gaijinpot.com/en/job/152755/details/arts-entertainment-recreation/graphic-designer", bd:{role:22,phys:5,full:6,visa:14,loc:10,lang:5}, note:"全列唯一「明确签证支持」+英语可，签证最稳；但内容为手游/营销视觉，实体包装·周边落地几乎为零，仅作签证保底参考。" }
-];
-/* === JOBS_DATA_END === */
-const CAT_CLASS={"パッケージ":"pkg","グッズ・商品企画":"goods","グラフィック・広告":"graphic","イラスト・ビジュアル":"illust","プロダクト":"product"};
-const CAT_LABEL={"パッケージ":"包装","グッズ・商品企画":"周边/商品企划","グラフィック・広告":"平面/广告","イラスト・ビジュアル":"插画/视觉","プロダクト":"产品/立体"};
-const GRADE_COLOR={S:"#caa204",A:"#2f9e54",B:"#3b78d8",C:"#9aa1af"};
-let state={q:"",cat:"all",flt:new Set(),sortK:"score",sortDir:-1};
-document.getElementById("updated").textContent=META.updated;
-function kpis(){document.getElementById("k-total").textContent=JOBS.length;document.getElementById("k-sa").textContent=JOBS.filter(j=>j.grade==="S"||j.grade==="A").length;document.getElementById("k-kanto").textContent=JOBS.filter(j=>j.kanto).length;document.getElementById("k-visa").textContent=JOBS.filter(j=>j.visa==="明确").length;}
-function visaSpan(v){const c=v==="明确"?"v1":(v==="要確認"?"v2":"v3");return '<span class="visa"><span class="'+c+'">'+v+'</span></span>';}
-function innovSpan(v){const c=v==="対象"?"i1":(v==="要確認"?"i2":"i0");return '<span class="itag '+c+'">'+v+'</span>';}
-function filtered(){return JOBS.filter(j=>{if(state.cat!=="all"&&j.category!==state.cat)return false;if(state.flt.has("kanto")&&!j.kanto)return false;if(state.flt.has("visa")&&j.visa!=="明确")return false;if(state.flt.has("innov")&&j.innov!=="対象")return false;if(state.q){const s=(j.title+j.company).toLowerCase();if(!s.includes(state.q.toLowerCase()))return false;}return true;}).sort((a,b)=>{let x=a[state.sortK],y=b[state.sortK];if(typeof x==="string"){x=x||"";y=y||"";return state.sortDir*x.localeCompare(y);}return state.sortDir*((x||0)-(y||0));});}
-function rows(){const tb=document.getElementById("rows");tb.innerHTML="";const data=filtered();if(!data.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:26px">无符合筛选的岗位</td></tr>';return;}data.forEach((j,i)=>{const tr=document.createElement("tr");const cc=CAT_CLASS[j.category]||"graphic";tr.innerHTML='<td><div class="score"><span class="badge '+j.grade+'">'+j.grade+'</span><span class="scoreN">'+j.score+'</span></div><div class="bar"><i style="width:'+j.score+'%;background:'+GRADE_COLOR[j.grade]+'"></i></div></td><td class="title-cell"><b>'+j.title+'</b><div class="co">'+j.company+'</div><span class="expand" data-i="'+i+'">▸ 评分明细</span><div class="bd">职能 '+j.bd.role+'/35 · 实体 '+j.bd.phys+'/20 · 全案 '+j.bd.full+'/15 · 签证 '+j.bd.visa+'/15 · 地点 '+j.bd.loc+'/10 · 语言 '+j.bd.lang+'/5<br>'+j.note+'</div></td><td class="col-hide"><span class="tag '+cc+'">'+CAT_LABEL[j.category]+'</span></td><td class="'+(j.kanto?'loc-kanto':'loc-other')+'">'+j.location+'</td><td class="col-hide">'+j.employ+'<div class="src">'+j.salary+'</div></td><td>'+visaSpan(j.visa)+'<div class="src">'+(j.visaNote||"")+'</div><div class="innovline">革新促进 '+innovSpan(j.innov)+'</div></td><td class="col-hide src">'+j.source+'</td><td><a class="apply" href="'+j.url+'" target="_blank" rel="noopener">查看 ↗</a></td>';tb.appendChild(tr);});tb.querySelectorAll(".expand").forEach(e=>e.onclick=ev=>{ev.target.closest("tr").classList.toggle("open");});}
-let catChart,visaChart;
-function charts(){const cats=Object.keys(CAT_LABEL);const counts=cats.map(c=>JOBS.filter(j=>j.category===c).length);const colors=["#0f9e8f","#e0568b","#5b62d6","#e0930a","#2f9e54"];if(window.Chart){new Chart(document.getElementById("catChart"),{type:"bar",data:{labels:cats.map(c=>CAT_LABEL[c]),datasets:[{data:counts,backgroundColor:colors,borderRadius:7,maxBarThickness:46}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,precision:0},grid:{color:"#eef0f5"}},x:{grid:{display:false}}}}});const vc={"明确":0,"要確認":0,"可能":0};JOBS.forEach(j=>vc[j.visa]=(vc[j.visa]||0)+1);new Chart(document.getElementById("visaChart"),{type:"doughnut",data:{labels:["明确支持","要確認","可support"],datasets:[{data:[vc["明确"]||0,vc["要確認"]||0,vc["可能"]||0],backgroundColor:["#2f9e54","#e0a93a","#9aa1af"],borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}}}});}}
-document.getElementById("q").oninput=e=>{state.q=e.target.value;rows();};
-document.querySelectorAll("#catFilter .chip").forEach(c=>c.onclick=()=>{document.querySelectorAll("#catFilter .chip").forEach(x=>x.classList.remove("active"));c.classList.add("active");state.cat=c.dataset.cat;rows();});
-document.querySelectorAll("#extra .chip").forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove("active");}else{state.flt.add(f);c.classList.add("active");}rows();});
-document.querySelectorAll("#tbl thead th[data-k]").forEach(th=>th.onclick=()=>{const k=th.dataset.k;if(state.sortK===k)state.sortDir*=-1;else{state.sortK=k;state.sortDir=(k==="score")?-1:1;}document.querySelectorAll("#tbl thead th .ar").forEach(a=>a.textContent="");const ar=th.querySelector(".ar");if(ar)ar.textContent=state.sortDir<0?"▼":"▲";rows();});
-kpis();rows();charts();
+const CL={"パッケージ":["包装","#0c7a6e","#e3f6f3"],"グッズ・商品企画":["周边/商品企划","#bd3f72","#fceaf2"],"グラフィック・広告":["平面/广告","#444cc0","#eceefb"],"イラスト・ビジュアル":["插画/视觉","#9a6406","#fdf2dc"],"プロダクト":["产品/立体","#26834a","#e7f5ec"]};
+const GC={S:"#caa204",A:"#2f9e54",B:"#3b78d8",C:"#9aa1af"};
+const esc=s=>String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+let DATA={jobs:[],generated:""};
+let state={q:"",cat:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
+fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;DATA.jobs=DATA.jobs||[];init();})
+ .catch(e=>{document.getElementById('list').innerHTML='<p class="empty">加载 data.json 失败：'+esc(e.message||e)+'<br>（请用 https 的 GitHub Pages 网址打开，本地 file:// 会被浏览器拦截）</p>';});
+function kpi(n,l,c){return '<div class="kpi '+(c||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
+function renderKpis(){const J=DATA.jobs;
+ document.getElementById('upd').textContent='最近更新：'+(DATA.generated||'')+' ｜ 每天 08:28 自动累积';
+ document.getElementById('kpis').innerHTML=
+  kpi(J.length,'累计岗位')+
+  kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
+  kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
+  kpi(J.filter(j=>j.kanto).length,'首都圈','k')+
+  kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
+function filtered(){let a=DATA.jobs.filter(j=>{
+  if(state.cat!=='all'&&j.category!==state.cat)return false;
+  if(state.flt.has('today')&&j.firstSeen!==DATA.generated)return false;
+  if(state.flt.has('kanto')&&!j.kanto)return false;
+  if(state.flt.has('visa')&&j.visa!=='明确')return false;
+  if(state.flt.has('innov')&&j.innov!=='対象')return false;
+  if(state.q){const s=(j.title+j.company+(j.location||'')).toLowerCase();if(!s.includes(state.q.toLowerCase()))return false;}
+  return true;});
+ if(state.sort==='score')a.sort((x,y)=>(y.score||0)-(x.score||0));
+ else if(state.sort==='lastSeen')a.sort((x,y)=>(y.lastSeen||'').localeCompare(x.lastSeen||'')||(y.score||0)-(x.score||0));
+ else a.sort((x,y)=>(y.firstSeen||'').localeCompare(x.firstSeen||'')||(y.score||0)-(x.score||0));
+ return a;}
+function card(j){const C=CL[j.category]||CL["グラフィック・広告"];const vcol=j.visa==='明确'?'#1b8f4a':'#b8860b';
+ const isNew=j.firstSeen===DATA.generated;const seen=j.firstSeen===j.lastSeen?j.firstSeen:(j.firstSeen+' → '+j.lastSeen);
+ return '<div class="card"><div class="row"><span class="badge" style="background:'+GC[j.grade]+'">'+j.grade+' '+j.score+'</span>'+
+  '<span class="cat" style="color:'+C[1]+';background:'+C[2]+'">'+C[0]+'</span>'+(isNew?'<span class="new">今日新增</span>':'')+'</div>'+
+  '<div class="ti">'+esc(j.title)+'</div><div class="co">'+esc(j.company)+'</div>'+
+  '<div class="meta">📍 '+esc(j.location)+' · 💼 '+esc(j.employ)+' · 💴 '+esc(j.salary)+'</div>'+
+  '<div class="meta">🛂 <b style="color:'+vcol+'">'+esc(j.visa)+'</b> '+esc(j.visaNote||'')+' ｜ 革新 '+esc(j.innov)+'</div>'+
+  '<div class="meta sub">🗓 '+esc(seen)+'（出现 '+(j.seenCount||1)+' 天）</div>'+
+  '<div class="note">'+esc(j.note||'')+'</div>'+
+  '<a class="open" href="'+esc(j.url)+'" target="_blank" rel="noopener">查看招聘页 ↗（'+esc(j.source||'')+'）</a></div>';}
+function pager(total){const pages=Math.max(1,Math.ceil(total/state.size));if(state.page>pages)state.page=pages;
+ return '<button '+(state.page<=1?'disabled':'')+' onclick="go('+(state.page-1)+')">‹ 上一页</button>'+
+  '<span>第 '+state.page+' / '+pages+' 页 · 共 '+total+' 条</span>'+
+  '<button '+(state.page>=pages?'disabled':'')+' onclick="go('+(state.page+1)+')">下一页 ›</button>';}
+window.go=function(p){state.page=p;render();window.scrollTo({top:0,behavior:'smooth'});};
+function render(){const a=filtered();const start=(state.page-1)*state.size;const items=a.slice(start,start+state.size);
+ document.getElementById('list').innerHTML=items.length?items.map(card).join(''):'<p class="empty">无符合条件的岗位</p>';
+ document.getElementById('pager').innerHTML=pager(a.length);}
+function bind(){
+ document.getElementById('q').oninput=e=>{state.q=e.target.value;state.page=1;render();};
+ document.getElementById('sort').onchange=e=>{state.sort=e.target.value;state.page=1;render();};
+ document.querySelectorAll('#catFilter .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#catFilter .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.cat=c.dataset.cat;state.page=1;render();});
+ document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});}
+function init(){renderKpis();bind();render();}
 </script></body></html>
