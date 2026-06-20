@@ -2,6 +2,7 @@
 <meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>日本设计岗位 · 累积存档</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <style>
 :root{color-scheme:light;--bg:#f6f7fb;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e8eaf0;--indigo:#5b62d6;--s:#caa204;--a:#2f9e54;--b:#3b78d8;--c:#9aa1af}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","PingFang SC",system-ui,sans-serif;line-height:1.55;font-size:15px}
@@ -16,6 +17,11 @@ h1{font-size:19px;margin:0 0 2px}.sub{color:var(--muted);font-size:12px}.upd{col
 .sources .src{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;color:#3a4255;cursor:pointer;user-select:none}
 .sources .src .c{color:var(--muted);font-weight:700;margin-left:4px}
 .sources .src.active{background:var(--indigo);color:#fff;border-color:var(--indigo)}.sources .src.active .c{color:#fff}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 12px}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.chart-card h3{margin:0 0 8px;font-size:13px}.chart-card.wide{grid-column:1 / -1}
+.chart-box{position:relative;height:200px}
+@media(max-width:640px){.charts{grid-template-columns:1fr}}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 10px}
 .toolbar input,.toolbar select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
 .toolbar input{flex:1;min-width:150px}
@@ -41,6 +47,11 @@ footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 <div class="upd" id="upd"></div>
 <section class="kpis" id="kpis"></section>
 <div class="sources" id="sources"></div>
+<section class="charts">
+ <div class="chart-card"><h3>📊 职能分布</h3><div class="chart-box"><canvas id="catChart"></canvas></div></div>
+ <div class="chart-card"><h3>🛂 签证支持</h3><div class="chart-box"><canvas id="visaChart"></canvas></div></div>
+ <div class="chart-card wide"><h3>📈 累计收录趋势</h3><div class="chart-box"><canvas id="trendChart"></canvas></div></div>
+</section>
 <div class="toolbar">
  <input id="q" placeholder="🔍 搜索 职位 / 公司 / 地点…">
  <select id="sort"><option value="firstSeen">按收录时间（新→旧）</option><option value="score">按匹配度（高→低）</option><option value="lastSeen">按最近出现</option></select>
@@ -63,7 +74,7 @@ footer{color:var(--muted);font-size:11px;line-height:1.7;margin-top:18px}
 </div>
 <div id="list"></div>
 <div class="pager" id="pager"></div>
-<footer>累积存档：每日 08:28 自动合并去重（按 公司+职位）。firstSeen=首次收录日，lastSeen=最近一次出现在每日匹配里。匹配度按6维模型（职能35/实体20/全案15/签证15/地点10/语言5）。「要確認」=未注明或公开渠道未查到。来源以各招聘页为准。© 自动生成，仅供求职参考。</footer>
+<footer>累积存档：每日 08:28 自动合并去重（按 公司+职位）。firstSeen=首次收录日，lastSeen=最近一次出现在每日匹配里。图表按累计全量统计。匹配度按6维模型（职能35/实体20/全案15/签证15/地点10/语言5）。「要確認」=未注明或公开渠道未查到。© 自动生成，仅供求职参考。</footer>
 </div>
 <script>
 const CL={"パッケージ":["包装","#0c7a6e","#e3f6f3"],"グッズ・商品企画":["周边/商品企划","#bd3f72","#fceaf2"],"グラフィック・広告":["平面/广告","#444cc0","#eceefb"],"イラスト・ビジュアル":["插画/视觉","#9a6406","#fdf2dc"],"プロダクト":["产品/立体","#26834a","#e7f5ec"]};
@@ -71,24 +82,31 @@ const GC={S:"#caa204",A:"#2f9e54",B:"#3b78d8",C:"#9aa1af"};
 const esc=s=>String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 let DATA={jobs:[],generated:""};
 let state={q:"",cat:"all",src:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
+let _charts=[];
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;DATA.jobs=DATA.jobs||[];init();})
  .catch(e=>{document.getElementById('list').innerHTML='<p class="empty">加载 data.json 失败：'+esc(e.message||e)+'<br>（请用 https 的 GitHub Pages 网址打开，本地 file:// 会被浏览器拦截）</p>';});
 function kpi(n,l,c){return '<div class="kpi '+(c||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
 function renderKpis(){const J=DATA.jobs;
  document.getElementById('upd').textContent='最近更新：'+(DATA.generated||'')+' ｜ 每天 08:28 自动累积';
  document.getElementById('kpis').innerHTML=
-  kpi(J.length,'累计岗位')+
-  kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
+  kpi(J.length,'累计岗位')+kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
   kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
-  kpi(J.filter(j=>j.kanto).length,'首都圈','k')+
-  kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
+  kpi(J.filter(j=>j.kanto).length,'首都圈','k')+kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v');}
 function renderSources(){const m={};DATA.jobs.forEach(j=>{const s=j.source||'其他';m[s]=(m[s]||0)+1;});
  const arr=Object.keys(m).sort((a,b)=>m[b]-m[a]);
- let h='<span class="lab">📋 信息来源</span>';
- h+='<span class="src'+(state.src==='all'?' active':'')+'" data-src="all">全部<span class="c">'+DATA.jobs.length+'</span></span>';
+ let h='<span class="lab">📋 信息来源</span><span class="src'+(state.src==='all'?' active':'')+'" data-src="all">全部<span class="c">'+DATA.jobs.length+'</span></span>';
  arr.forEach(s=>{h+='<span class="src'+(state.src===s?' active':'')+'" data-src="'+esc(s)+'">'+esc(s)+'<span class="c">'+m[s]+'</span></span>';});
  const el=document.getElementById('sources');el.innerHTML=h;
  el.querySelectorAll('.src').forEach(c=>c.onclick=()=>{state.src=c.dataset.src;state.page=1;renderSources();render();});}
+function renderCharts(){if(!window.Chart)return;_charts.forEach(c=>c.destroy());_charts=[];
+ const J=DATA.jobs;Chart.defaults.font.size=11;Chart.defaults.font.family='-apple-system,sans-serif';
+ const cats=Object.keys(CL);const cc=cats.map(c=>J.filter(j=>j.category===c).length);
+ _charts.push(new Chart(document.getElementById('catChart'),{type:'bar',data:{labels:cats.map(c=>CL[c][0]),datasets:[{data:cc,backgroundColor:cats.map(c=>CL[c][1]),borderRadius:6,maxBarThickness:40}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1,precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));
+ const vm={'明确':0,'要確認':0};J.forEach(j=>{vm[j.visa]=(vm[j.visa]||0)+1;});
+ _charts.push(new Chart(document.getElementById('visaChart'),{type:'doughnut',data:{labels:['明确支持','要確認'],datasets:[{data:[vm['明确']||0,vm['要確認']||0],backgroundColor:['#2f9e54','#e0a93a'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}}}}));
+ const bd={};J.forEach(j=>{const d=j.firstSeen||DATA.generated;bd[d]=(bd[d]||0)+1;});
+ const ds=Object.keys(bd).sort();let cum=0;const cd=ds.map(d=>cum+=bd[d]);
+ _charts.push(new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:ds,datasets:[{label:'累计岗位',data:cd,borderColor:'#5b62d6',backgroundColor:'rgba(91,98,214,.12)',fill:true,tension:.25,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));}
 function filtered(){let a=DATA.jobs.filter(j=>{
   if(state.cat!=='all'&&j.category!==state.cat)return false;
   if(state.src!=='all'&&(j.source||'其他')!==state.src)return false;
@@ -125,5 +143,5 @@ function bind(){
  document.getElementById('sort').onchange=e=>{state.sort=e.target.value;state.page=1;render();};
  document.querySelectorAll('#catFilter .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#catFilter .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.cat=c.dataset.cat;state.page=1;render();});
  document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});}
-function init(){renderKpis();renderSources();bind();render();}
+function init(){renderKpis();renderSources();renderCharts();bind();render();}
 </script></body></html>
