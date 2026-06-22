@@ -36,6 +36,7 @@ h1{font-family:Georgia,"Songti SC","Hiragino Mincho ProN","Yu Mincho",serif;font
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0 12px}
 .toolbar input,.toolbar select{font:inherit;font-size:14px;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink)}
 .toolbar input{flex:1;min-width:160px}.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--sage)}
+.toolbar .d{flex:none;min-width:0;max-width:160px}#datebar .lbl{font-size:12.5px;color:var(--muted);display:inline-flex;align-items:center}#datebar .chip{cursor:pointer}
 .seg{display:flex;gap:7px;flex-wrap:wrap}
 .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:12px;cursor:pointer;color:var(--muted);user-select:none;transition:.15s}
 .chip:hover{border-color:var(--sage)}.chip.active{background:var(--sage);color:#fff;border-color:var(--sage)}
@@ -82,6 +83,7 @@ footer{color:var(--muted);font-size:11px;line-height:1.8;margin-top:24px;padding
  <div class="chart-card wide"><h3>累计收录趋势</h3><div class="chart-box"><canvas id="trendChart"></canvas></div></div>
 </section>
 <div class="toolbar"><input id="q" placeholder="🔍 搜索 职位 / 公司 / 地点…"><select id="sort"><option value="firstSeen">按收录时间（新→旧）</option><option value="score">按匹配度（高→低）</option><option value="lastSeen">按最近出现</option></select></div>
+<div class="toolbar" id="datebar"><span class="lbl">📅 指定日期</span><select id="asof" class="d" title="选某扫描日，回看当天在档的岗位（firstSeen≤当天≤lastSeen）"></select><span class="lbl">⏳ 截止日≥</span><input type="date" id="dl" class="d" title="只显示该日期仍可投递的岗位（无截止日＝长期有效）"><span class="chip" id="dateReset">清除日期</span><span class="lbl" id="dateHint" style="margin-left:2px"></span></div>
 <div class="toolbar"><div class="seg" id="catFilter"><span class="chip active" data-cat="all">全部职能</span><span class="chip" data-cat="パッケージ">包装</span><span class="chip" data-cat="グッズ・商品企画">周边/商品企划</span><span class="chip" data-cat="グラフィック・広告">平面/广告</span><span class="chip" data-cat="イラスト・ビジュアル">插画/视觉</span><span class="chip" data-cat="プロダクト">产品/立体</span></div><div class="seg" id="extra"><span class="chip" data-flt="today">仅今日新增</span><span class="chip" data-flt="kanto">仅首都圈</span><span class="chip" data-flt="visa">仅明确签证</span><span class="chip" data-flt="innov">仅革新促进</span><span class="chip" data-flt="hideexp">隐藏已下架</span></div></div>
 <div id="list"></div>
 <div class="pager" id="pager"></div>
@@ -94,7 +96,7 @@ const CL={"パッケージ":["包装","#5e7d72","#e7eee9"],"グッズ・商品�
 const GC={S:"#c2a25a",A:"#8a9a7b",B:"#8295ad",C:"#b1aaa0"};
 const esc=s=>String(s==null?"":s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 let DATA={jobs:[],generated:""};
-let state={q:"",cat:"all",src:"all",flt:new Set(),sort:"firstSeen",page:1,size:20};
+let state={q:"",cat:"all",src:"all",flt:new Set(),sort:"firstSeen",page:1,size:20,asof:"",dl:""};
 let _charts=[];
 const SRCDEFS=[
 {n:'Daijob',kws:['daijob']},{n:'GaijinPot',kws:['gaijinpot','gaijin pot']},{n:'Japan Dev',kws:['japan dev','japandev','japan-dev']},
@@ -110,10 +112,11 @@ function srcDefOf(j){for(var i=0;i<SRCDEFS.length;i++){if(srcMatch(j,SRCDEFS[i])
 fetch('data.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{DATA=d;DATA.jobs=DATA.jobs||[];init();})
  .catch(e=>{var _l=document.getElementById('loader');if(_l)_l.classList.add('hide');document.getElementById('list').innerHTML='<p class="empty">加载 data.json 失败：'+esc(e.message||e)+'<br>（请用 https 的 GitHub Pages 网址打开，本地 file:// 会被浏览器拦截）</p>';});
 function kpi(n,l,c){return '<div class="kpi '+(c||'')+'"><div class="n">'+n+'</div><div class="l">'+l+'</div></div>';}
-function renderKpis(){const J=DATA.jobs;
- document.getElementById('upd').textContent='最近更新：'+(DATA.generated||'')+' ｜ 每天 08:28 自动累积';
+function renderKpis(){const J=baseJobs();const R=refDate();const asof=state.asof;
+ var dh=document.getElementById('dateHint');if(dh)dh.textContent=(asof||state.dl)?('｜ 已按日期筛选'+(asof?'·在档日 '+asof:'')+(state.dl?'·截止≥'+state.dl:'')):'';
+ document.getElementById('upd').textContent=(asof?('📅 指定日期：'+asof+'（当日在档 '+J.length+' 个 · 回看历史快照）'):('最近更新：'+(DATA.generated||'')+' ｜ 每天 08:28 自动累积'));
  document.getElementById('kpis').innerHTML=
-  kpi(J.length,'累计岗位')+kpi(J.filter(j=>j.firstSeen===DATA.generated).length,'今日新增','t')+
+  kpi(J.length,asof?'当日在档':'累计岗位')+kpi(J.filter(j=>j.firstSeen===R).length,asof?'当日新增':'今日新增','t')+
   kpi(J.filter(j=>j.grade==='S'||j.grade==='A').length,'S/A 级','s')+
   kpi(J.filter(j=>j.kanto).length,'首都圈','k')+kpi(J.filter(j=>j.visa==='明确').length,'明确签证','v')+kpi(J.filter(j=>jstat(j)==='expired').length,'已下架','x');}
 function renderSources(){var cnt={};SRCDEFS.forEach(function(d){cnt[d.n]=0;});var extra={};
@@ -135,14 +138,18 @@ function renderCharts(){if(!window.Chart)return;_charts.forEach(c=>c.destroy());
  _charts.push(new Chart(document.getElementById('trendChart'),{type:'line',data:{labels:ds,datasets:[{label:'累计岗位',data:cd,borderColor:'#8a9a7b',backgroundColor:'rgba(138,154,123,.16)',fill:true,tension:.25,pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0},grid:{color:'#eef0f5'}},x:{grid:{display:false}}}}}));}
 function drawCharts(){if(!window.Chart){return setTimeout(drawCharts,200);}try{renderCharts();}catch(e){console.error('charts',e);}}
 var STALE=12;
+function refDate(){return state.asof||DATA.generated;}
+function baseJobs(){return state.asof?DATA.jobs.filter(function(j){return (j.firstSeen||'')<=state.asof&&(j.lastSeen||'')>=state.asof;}):DATA.jobs;}
+function scanDates(){var s={};DATA.jobs.forEach(function(j){if(j.firstSeen)s[j.firstSeen]=1;if(j.lastSeen)s[j.lastSeen]=1;});return Object.keys(s).sort().reverse();}
 function dnum(s){if(!s)return null;var q=String(s).split("-");return q.length<3?null:Date.UTC(+q[0],+q[1]-1,+q[2]);}
 function daysBetween(a,b){var x=dnum(a),y=dnum(b);if(x==null||y==null)return 0;return Math.round((y-x)/86400000);}
-function jstat(j){var t=DATA.generated;if(j.expired===true)return "expired";if(j.deadline&&t&&j.deadline<t)return "expired";if(j.deadline&&t&&j.deadline>=t){var du=daysBetween(t,j.deadline);if(du>=0&&du<=7)return "soon";}var ds=daysBetween(j.lastSeen||t,t);if(ds>=STALE)return "stale";return "active";}
+function jstat(j){var t=refDate();if(j.expired===true)return "expired";if(j.deadline&&t&&j.deadline<t)return "expired";if(j.deadline&&t&&j.deadline>=t){var du=daysBetween(t,j.deadline);if(du>=0&&du<=7)return "soon";}var ds=daysBetween(j.lastSeen||t,t);if(ds>=STALE)return "stale";return "active";}
 function statBadge(st,j){if(st==="expired")return '<span class="st ex">已下架</span>';if(st==="soon")return '<span class="st so">即将下架·'+String(j.deadline||"").slice(5).replace("-","/")+'</span>';if(st==="stale")return '<span class="st sl">待复核</span>';return '';}
-function filtered(){let a=DATA.jobs.filter(j=>{
+function filtered(){let a=baseJobs().filter(j=>{
   if(state.cat!=='all'&&j.category!==state.cat)return false;
   if(state.src!=='all'){var _d=SRCDEFS.filter(function(d){return d.n===state.src;})[0];if(_d){if(!srcMatch(j,_d))return false;}else if((j.source||'其他')!==state.src)return false;}
-  if(state.flt.has('today')&&j.firstSeen!==DATA.generated)return false;
+  if(state.dl&&j.deadline&&j.deadline<state.dl)return false;
+  if(state.flt.has('today')&&j.firstSeen!==refDate())return false;
   if(state.flt.has('kanto')&&!j.kanto)return false;
   if(state.flt.has('visa')&&j.visa!=='明确')return false;
   if(state.flt.has('innov')&&j.innov!=='対象')return false;
@@ -154,7 +161,7 @@ function filtered(){let a=DATA.jobs.filter(j=>{
  else a.sort((x,y)=>(y.firstSeen||'').localeCompare(x.firstSeen||'')||(y.score||0)-(x.score||0));
  return a;}
 function card(j){const C=CL[j.category]||CL["グラフィック・広告"];const vcol=j.visa==='明确'?'#1b8f4a':'#b8860b';
- const isNew=j.firstSeen===DATA.generated;const seen=j.firstSeen===j.lastSeen?j.firstSeen:(j.firstSeen+' → '+j.lastSeen);var st=jstat(j);
+ const isNew=j.firstSeen===refDate();const seen=j.firstSeen===j.lastSeen?j.firstSeen:(j.firstSeen+' → '+j.lastSeen);var st=jstat(j);
  return '<div class="card'+(st==='expired'?' isexp':'')+'"><div class="rowx"><span class="badge" style="background:'+GC[j.grade]+'">'+j.grade+' '+j.score+'</span>'+
   '<span class="cat" style="color:'+C[1]+';background:'+C[2]+'">'+C[0]+'</span>'+(isNew?'<span class="new">今日新增</span>':'')+statBadge(st,j)+'</div>'+
   '<div class="ti">'+esc(j.title)+'</div><div class="co">'+esc(j.company)+'</div>'+
@@ -168,14 +175,17 @@ function pager(total){const pages=Math.max(1,Math.ceil(total/state.size));if(sta
   '<span>第 '+state.page+' / '+pages+' 页 · 共 '+total+' 条</span>'+
   '<button '+(state.page>=pages?'disabled':'')+' onclick="go('+(state.page+1)+')">下一页 ›</button>';}
 window.go=function(p){state.page=p;render();window.scrollTo({top:0,behavior:'smooth'});};
-function render(){const a=filtered();const start=(state.page-1)*state.size;const items=a.slice(start,start+state.size);
+function render(){renderKpis();const a=filtered();const start=(state.page-1)*state.size;const items=a.slice(start,start+state.size);
  document.getElementById('list').innerHTML=items.length?items.map(card).join(''):'<p class="empty">无符合条件的岗位</p>';
  document.getElementById('pager').innerHTML=pager(a.length);}
 function bind(){
  document.getElementById('q').oninput=e=>{state.q=e.target.value;state.page=1;render();};
  document.getElementById('sort').onchange=e=>{state.sort=e.target.value;state.page=1;render();};
  document.querySelectorAll('#catFilter .chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('#catFilter .chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');state.cat=c.dataset.cat;state.page=1;render();});
- document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});}
-function init(){renderKpis();renderSources();bind();render();drawCharts();var _l=document.getElementById('loader');if(_l)_l.classList.add('hide');}
+ document.querySelectorAll('#extra .chip').forEach(c=>c.onclick=()=>{const f=c.dataset.flt;if(state.flt.has(f)){state.flt.delete(f);c.classList.remove('active');}else{state.flt.add(f);c.classList.add('active');}state.page=1;render();});
+ var _as=document.getElementById('asof');if(_as)_as.onchange=function(){state.asof=_as.value;state.page=1;render();};
+ var _dl=document.getElementById('dl');if(_dl)_dl.onchange=function(){state.dl=_dl.value;state.page=1;render();};
+ var _dr=document.getElementById('dateReset');if(_dr)_dr.onclick=function(){state.asof='';state.dl='';if(_as)_as.value='';if(_dl)_dl.value='';state.page=1;render();};}
+function init(){var _as=document.getElementById('asof');if(_as){_as.innerHTML='<option value="">最新（全部）</option>'+scanDates().map(function(d){return '<option value="'+d+'">'+d+(d===DATA.generated?'（最新扫描）':'')+'</option>';}).join('');}renderKpis();renderSources();bind();render();drawCharts();var _l=document.getElementById('loader');if(_l)_l.classList.add('hide');}
 
 </script></body></html>
